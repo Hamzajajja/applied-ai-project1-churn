@@ -1,7 +1,7 @@
 # Applied AI Project 1: Customer Churn Prediction
 
-**Student Name:** [Your Full Name as on class list]  
-**Course:** Introduction to Applied AI (BS 8th Semester)  
+**Student Name:** Hamza Khalid  
+**Course:** Introduction to Applied AI (MPHIL 2nd  Semester)  
 
 ---
 

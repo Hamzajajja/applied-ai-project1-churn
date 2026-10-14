@@ -115,8 +115,8 @@ with tab1:
     
     # WHAT-IF SIMULATION DECK (Strategic Sensitivity Matrix Calculation Engine)
     st.subheader('🔮 Automated What-If Optimization Sensitivity Matrix')
-    st.markdown("<small>Simulates strategic account optimization scenarios to lower system risk models.</small>", unsafe_values=True)
-    
+    st.markdown("<small>Simulates strategic account optimization scenarios to lower system risk models.</small>", unsafe_allow_html=True)
+
     what_if_scenarios = []
     if contract != 'Two year':
         what_if_scenarios.append(('Contract', 'Two year' if contract == 'Month-to-month' else 'One year'))

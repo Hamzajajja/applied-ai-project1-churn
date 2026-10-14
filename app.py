@@ -1,12 +1,52 @@
 import json
 import joblib
+import os
+import logging
 import numpy as np
 import pandas as pd
 import streamlit as st
 
-# 1. APPLICATION SETUP & LOOK
-st.set_page_config(page_title='Churn Risk Advisor', layout='wide', initial_sidebar_state='expanded')
+# 1. TELEMETRY & LOGGER CONFIGURATION
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
+# 2. GLOBAL STYLING FRAMEWORK & DESIGN SYSTEM Injection
+st.set_page_config(
+    page_title='Enterprise Churn Risk Advisor',
+    page_icon='🛡️',
+    layout='wide',
+    initial_sidebar_state='expanded'
+)
+
+# Premium executive dark/light styling rules injection
+st.markdown("""
+    <style>
+        @import url('https://googleapis.com');
+        html, body, [class*="css"] {
+            font-family: 'Inter', sans-serif;
+        }
+        .metric-card {
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease-in-out;
+        }
+        .metric-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        .custom-caption {
+            font-size: 0.85rem;
+            color: #8892b0;
+            margin-top: -8px;
+            margin-bottom: 24px;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+# 3. SCHEMA & CONSTANTS SPECIFICATIONS
 RAW_COLS = [
     'gender', 'SeniorCitizen', 'Partner', 'Dependents', 'tenure',
     'PhoneService', 'MultipleLines', 'InternetService', 'OnlineSecurity',
@@ -18,105 +58,132 @@ RAW_COLS = [
 SERVICES = ['OnlineSecurity', 'OnlineBackup', 'DeviceProtection', 'TechSupport', 'StreamingTV', 'StreamingMovies']
 PAYMENTS = ['Electronic check', 'Mailed check', 'Bank transfer (automatic)', 'Credit card (automatic)']
 
-# 2. CACHED INFRASTRUCTURE MANAGEMENT (Optimizes server processing)
-@st.cache_resource
+# 4. ROBUST RESOURCE LAYER (Cached memory optimization)
+@st.cache_resource(show_spinner="Bootstrapping secure model pipelines...")
 def load_production_artifacts():
-    model = joblib.load('churn_model.joblib')
-    with open('model_meta.json') as f:
-        meta = json.load(f)
-    return model, meta
+    try:
+        if not os.path.exists('churn_model.joblib') or not os.path.exists('model_meta.json'):
+            logger.error("Missing critical files inside execution workspace environment.")
+            return None, None
+        model = joblib.load('churn_model.joblib')
+        with open('model_meta.json') as f:
+            meta = json.load(f)
+        logger.info("Successfully mounted prediction engine configuration blocks.")
+        return model, meta
+    except Exception as e:
+        logger.critical(f"Pipeline loading crash trace: {e}")
+        return None, None
 
-try:
-    model, meta = load_production_artifacts()
-    COLS = meta['feature_columns']
-except Exception as e:
-    st.error(f"Failed to load engine components. Ensure artifacts sit in the app directory. Error: {e}")
+model, meta = load_production_artifacts()
+
+if model is None or meta is None:
+    st.error("### 🚨 System Boot Failure: Missing Production Pipeline Components")
+    st.info("Please verify that `churn_model.joblib` and `model_meta.json` sit securely inside the root project repository directory.")
     st.stop()
 
-def prepare_serving_input(raw_data, feature_columns):
-    """Processes categorical text inputs cleanly without drop_first alignment slips."""
+COLS = meta['feature_columns']
+
+# 5. DATA INFERENCE ENGINE PIPELINES
+def prepare_serving_input(raw_data: pd.DataFrame, feature_columns: list) -> pd.DataFrame:
+    """Safely handles one-hot encoding alignment transitions for out-of-fold inputs."""
     X = pd.get_dummies(raw_data[RAW_COLS])
     return X.reindex(columns=feature_columns, fill_value=0).astype(float)
 
-def execute_scoring(raw_frame):
-    return model.predict_proba(prepare_serving_input(raw_frame, COLS))[:, 1]
+def execute_inference(raw_frame: pd.DataFrame) -> np.ndarray:
+    try:
+        processed_frame = prepare_serving_input(raw_frame, COLS)
+        return model.predict_proba(processed_frame)[:, 1]
+    except Exception as e:
+        st.error(f"Prediction layer interface error: {e}")
+        return np.array([0.0])
 
 # ----------------------------------------------------------------------
-# 3. INTERACTIVE SIDEBAR CONTROL DECK (Single Profile Entry)
+# 6. ENTERPRISE SIDEBAR DECK INTERFACE
 # ----------------------------------------------------------------------
 with st.sidebar:
-    st.header('📌 Customer Input Profile')
+    st.title("⚙️ Control Dashboard")
+    st.markdown("### Profile Parameter Mapping")
     
-    tenure = st.slider('Tenure (Account Age in Months)', 0, 72, 4)
-    contract = st.selectbox('Contract Type Framework', ['Month-to-month', 'One year', 'Two year'])
-    monthly = st.number_input('Monthly Charges (USD)', 18.0, 120.0, 85.0, step=0.5)
-    internet = st.selectbox('Internet Service Type Architecture', ['Fiber optic', 'DSL', 'No'])
+    tenure = st.slider('Account Lifespan (Tenure Months)', 0, 72, 12, help="Duration of active account with provider.")
+    contract = st.selectbox('Subscription Contract Schema', ['Month-to-month', 'One year', 'Two year'])
+    monthly = st.number_input('Assigned Monthly Outlay (USD)', 18.0, 120.0, 75.0, step=1.0)
+    internet = st.selectbox('Pipeline Internet Distribution Network', ['Fiber optic', 'DSL', 'No'])
     
     services = []
     if internet != 'No':
-        services = st.multiselect('Activated Add-on Services', SERVICES, default=['StreamingTV'])
+        services = st.multiselect('Active Integrated Cloud Services Add-ons', SERVICES, default=['OnlineSecurity'])
         
-    phone = st.radio('Phone Service Infrastructure', ['Yes', 'No'], horizontal=True)
+    phone = st.radio('Voice Line Infrastructure Port Allocation', ['Yes', 'No'], horizontal=True)
     multi = 'No phone service'
     if phone == 'Yes':
-        multi = st.radio('Multiple Lines Line Setup', ['No', 'Yes'], horizontal=True)
+        multi = st.radio('Multiple Active Secondary Numbers Assigned', ['No', 'Yes'], horizontal=True)
         
-    payment = st.selectbox('Configured Payment Method', PAYMENTS)
-    paperless = st.radio('Paperless Billing Configuration', ['Yes', 'No'], horizontal=True)
+    payment = st.selectbox('Active Transaction Clearing Method', PAYMENTS)
+    paperless = st.radio('Paperless System Billing Opt-in', ['Yes', 'No'], horizontal=True)
     
-    with st.expander('👥 Demographic Attributes'):
-        gender = st.radio('Gender', ['Female', 'Male'], horizontal=True)
-        senior = st.checkbox('Senior Citizen Status Indicator')
-        partner = st.checkbox('Has Legal Relationship Partner')
-        dependents = st.checkbox('Has Living Dependents Support')
+    with st.sidebar.expander('👥 Client Demographic Fields'):
+        gender = st.radio('Identified Gender Profile', ['Female', 'Male'], horizontal=True)
+        senior = st.checkbox('Senior Citizen System Metric Classification Flag')
+        partner = st.checkbox('Verified Marital Relationship Partner Status')
+        dependents = st.checkbox('Active Family Dependents Coverage Status')
         
     st.divider()
-    # Pull configured baseline default boundary from json configuration mapping
-    threshold = st.slider('Target Decision Risk Threshold', 0.05, 0.95, float(meta['threshold']), 0.05)
+    threshold = st.slider('Risk Calibration Decision Limit (t*)', 0.05, 0.95, float(meta['threshold']), 0.05)
 
-# Transform structural entry deck values into structural dataframe row array
-customer_row = {
-    'gender': gender, 'SeniorCitizen': int(senior),
-    'Partner': 'Yes' if partner else 'No', 'Dependents': 'Yes' if dependents else 'No',
-    'tenure': tenure, 'PhoneService': phone, 'MultipleLines': multi,
-    'InternetService': internet, 'Contract': contract, 'PaperlessBilling': paperless,
-    'PaymentMethod': payment, 'MonthlyCharges': monthly, 'TotalCharges': tenure * monthly
+# Transform structural UI controls entries down into execution vectors matrix
+customer_dict = {
+    'gender': gender, 'SeniorCitizen': int(senior), 'Partner': 'Yes' if partner else 'No',
+    'Dependents': 'Yes' if dependents else 'No', 'tenure': tenure, 'PhoneService': phone,
+    'MultipleLines': multi, 'InternetService': internet, 'Contract': contract,
+    'PaperlessBilling': paperless, 'PaymentMethod': payment, 'MonthlyCharges': monthly,
+    'TotalCharges': tenure * monthly
 }
 
-for service in SERVICES:
-    customer_row[service] = ('No internet service' if internet == 'No' 
-                             else 'Yes' if service in services else 'No')
+for svc in SERVICES:
+    customer_dict[svc] = ('No internet service' if internet == 'No' else 'Yes' if svc in services else 'No')
 
-single_customer_df = pd.DataFrame([customer_row])
+single_customer_df = pd.DataFrame([customer_dict])
 
 # ----------------------------------------------------------------------
-# 4. MAIN CENTRAL INTERFACE PLATFORM
+# 7. MAIN INTERFACE FRAMEWORK - LARGE SCALE DATA CONTROL PLATFORM
 # ----------------------------------------------------------------------
 st.title('🛡️ Enterprise Customer Churn Risk Advisor')
-st.caption(f"Engine Core: **{meta['model_name']}** | Cross-Validation Standard AUC: **{meta['cv_auc']:.3f} ± {meta['cv_auc_std']:.3f}** | Status: Production Support Mode")
+st.markdown(f"<div class='custom-caption'>Production Cluster Framework: <b>{meta['model_name']}</b> Engine Core | Cross-Validation Framework Standard AUC: <b>{meta['cv_auc']:.3f} ± {meta['cv_auc_std']:.3f}</b></div>", unsafe_allow_html=True)
 
-tab1, tab2, tab3 = st.tabs(['📊 Single Profile Diagnosis', '📁 Batch Automated Scoring', '📘 Model Architecture Sheet'])
+tab1, tab2, tab3 = st.tabs([
+    '📊 Real-Time Diagnostic Node', 
+    '📁 Micro-Batch Processing Module', 
+    '📘 Platform Architecture & Card'
+])
 
-# TAB 1: SINGLE CUSTOMER EVALUATION
+# --- TAB 1: ADVANCED DIAGNOSTICS & SYSTEM WHAT-IF MATRIX ---
 with tab1:
-    p_churn = float(execute_scoring(single_customer_df)[0])
+    p_churn = float(execute_inference(single_customer_df)[0])
     
-    # Establish production-grade risk band tiers
-    risk_tier = ('🔴 HIGH RISK' if p_churn >= threshold else 
-                 '🟡 WATCH LIST' if p_churn >= (threshold / 2) else '🟢 LOW RISK')
-    
-    # Metric KPI Blocks Layout
-    c1, c2, c3 = st.columns(3)
-    c1.metric('Calculated Churn Probability', f'{p_churn:.1%}')
-    c2.metric('Operational Risk Tier', risk_tier)
-    c3.metric('Recommended Action Matrix', 'Initiate Corporate Outreach' if p_churn >= threshold else 'No Action Required')
-    
+    # Establish operational risk band frameworks
+    if p_churn >= threshold:
+        risk_color, risk_tier, structural_action = "crimson", "🔴 CRITICAL ACCELERATION RISK", "Immediate Outbound Retention Call Matrix Requested"
+    elif p_churn >= (threshold / 2):
+        risk_color, risk_tier, structural_action = "gold", "🟡 MONITORED WATCH BOUNDARY", "Queue Account for Standard Loyalty Campaign Placement"
+    else:
+        risk_color, risk_tier, structural_action = "emerald", "🟢 STABLE RETENTION BAND", "Maintain Standard Pipeline Operations Framework"
+
+    # HTML Card layout formatting block elements
+    m1, m2, m3 = st.columns(3)
+    with m1:
+        st.markdown(f"<div class='metric-card'><h4>Calculated Churn Vector</h4><h2 style='color:#61afef;'>{p_churn:.2%}</h2><small>Calculated from profile parameters matrix</small></div>", unsafe_allow_html=True)
+    with m2:
+        st.markdown(f"<div class='metric-card'><h4>Operational Stratum Status</h4><h3 style='color:{risk_color}; margin-top:12px;'>{risk_tier}</h3></div>", unsafe_allow_html=True)
+    with m3:
+        st.markdown(f"<div class='metric-card'><h4>Prescriptive Mitigation Matrix</h4><h4 style='color:#98c379; margin-top:8px;'>{structural_action}</h4></div>", unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
     st.progress(p_churn)
     
-    # WHAT-IF SIMULATION DECK (Strategic Sensitivity Matrix Calculation Engine)
-    st.subheader('🔮 Automated What-If Optimization Sensitivity Matrix')
-    st.markdown("<small>Simulates strategic account optimization scenarios to lower system risk models.</small>", unsafe_allow_html=True)
-
+    # ADVANCED SCENARIO OPTIMIZATION ENGINE
+    st.subheader('🔮 Automated Operational What-If Minimization Strategy Deck')
+    st.markdown("<p style='font-size:0.9rem; color:#8892b0;'>Simulates proactive account structural updates to isolate ideal retention trajectories.</p>", unsafe_allow_html=True)
+    
     what_if_scenarios = []
     if contract != 'Two year':
         what_if_scenarios.append(('Contract', 'Two year' if contract == 'Month-to-month' else 'One year'))
@@ -129,61 +196,14 @@ with tab1:
     for feature, alternate_value in what_if_scenarios:
         simulated_df = single_customer_df.copy()
         simulated_df[feature] = alternate_value
-        p_simulated = float(execute_scoring(simulated_df)[0])
+        p_simulated = float(execute_inference(simulated_df)[0])
+        variance_shift_delta = p_simulated - p_churn
+        
         optimization_rows.append({
-            'Strategic Action Parameter': f"Modify {feature} ➡️ {alternate_value}",
-            'Simulated Risk': f"{p_simulated:.1%}",
-            'Risk Reduction Shift Delta': f"{p_simulated - p_churn:+.1%}"
+            'Strategic Optimization Step': f"Transition profile dimension [{feature}] ➡️ '{alternate_value}'",
+            'Simulated Risk Velocity': f"{p_simulated:.2%}",
+            'Risk Reduction Target Variance Delta': f"{variance_shift_delta:+.2%}"
         })
         
     if optimization_rows:
         st.dataframe(pd.DataFrame(optimization_rows), use_container_width=True, hide_index=True)
-        st.caption('⚠️ *Note: Statistical matrix observations show data correlations, not guaranteed causal downstream revenue behaviors.*')
-    else:
-        st.info("Account is already optimized to maximum operational retention guidelines.")
-
-# TAB 2: BULK BATCH SCORING PROCESSING MODULE
-with tab2:
-    st.header('📁 Enterprise Bulk File Execution Processing')
-    st.markdown("Upload raw transaction data matrices matching standard Telco schemas to run bulk operations.")
-    
-    uploaded_file = st.file_uploader("Drop target database CSV frame here", type='csv')
-    if uploaded_file is not None:
-        batch_data = pd.read_csv(uploaded_file)
-        
-        missing_columns = [col for col in RAW_COLS if col not in batch_data.columns]
-        if missing_columns:
-            st.error(f"Structural Parsing Failure! Missing expected schema dimensions: {missing_columns}")
-            st.stop()
-            
-        # Repair textual blank types safely across evaluation frames
-        batch_data['TotalCharges'] = pd.to_numeric(batch_data['TotalCharges'], errors='coerce').fillna(0)
-        
-        # Execute vectorized model evaluation scoring loops
-        batch_data['Churn_Risk_Probability'] = execute_scoring(batch_data).round(4)
-        batch_data['Actionable_Contact_Flag'] = np.where(batch_data['Churn_Risk_Probability'] >= threshold, '🚨 CONTACT NOW', '✅ RETAIN')
-        
-        flagged_count = (batch_data['Actionable_Contact_Flag'] == '🚨 CONTACT NOW').sum()
-        st.warning(f"Analysis complete: Flagged **{flagged_count}** accounts out of **{len(batch_data)}** processed records for immediate mitigation outreach.")
-        
-        st.dataframe(batch_data.sort_values('Churn_Risk_Probability', ascending=False), use_container_width=True)
-        
-        # Export processed matrix as downloadable database artifact
-        processed_csv = batch_data.to_csv(index=False).encode('utf-8')
-        st.download_button(
-            label="📥 Download Scored Accounts Database File",
-            data=processed_csv,
-            file_name="scored_retention_accounts.csv",
-            mime="text/csv"
-        )
-
-# TAB 3: ENTERPRISE ARCHITECTURE SHEET
-with tab3:
-    st.header('📘 Technical Model Specification Card')
-    st.json({k: v for k, v in meta.items() if k != 'feature_columns'})
-    st.markdown("""
-    **Core Operational Constraints & Guardrails:**
-    - **Dataset Domain:** Model architecture trained completely on historical US telecom transaction profiles. 
-    - **Geographic Limits:** Not verified or calibrated for deployment inside Pakistani regional telecommunication frameworks (Jazz, Telenor, Zong) without localized retraining matrices.
-    - **Drift Warning:** Predictive capabilities fade over time as corporate data structures change or billing campaigns shift.
-    """)

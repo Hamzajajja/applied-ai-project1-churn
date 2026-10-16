@@ -1,13 +1,13 @@
-# Corporate Churn Diagnostic System (CCDS)
-**A Research Project under the Introduction to Applied AI Module**
+# Churn Diagnostic System (CDS)
+**A Project under the Introduction to Applied AI Module**
 
-**Author/Researcher:** Hamza Khalid  
-**Academic Standing:** MPhil (2nd Semester)  
-**Hosted Product Platform:** [PASTE YOUR LIVE STREAMLIT APP LINK HERE]
+**Name:** Hamza Khalid  
+**Semester** MPhil (2nd Semester)  
+**Hosted Platform URL:** https://applied-ai-project1-churn-w5sjgp3ytxfe8wda9hwskz.streamlit.app/
 
 ---
 
-### 📋 EXECUTIVE BRIEFING: PROJECT DELIVERABLES STATUS
+###  EXECUTIVE BRIEFING: PROJECT DELIVERABLES STATUS
 
 - [x] **Inference Core Module:** `week1-eda.ipynb` (Ingestion, standard parsing, and 8 behavioral charts)
 - [x] **Statistical Validation Node:** `week2-ml-models.ipynb` (Leak-free modeling and threshold financial optimization)
@@ -16,7 +16,7 @@
 
 ---
 
-### 🔍 SECTION 1: INGESTION LOGISTICS & DATA AUDITING (WEEK 1)
+###  SECTION 1: INGESTION LOGISTICS & DATA AUDITING (WEEK 1)
 
 #### Framework Parameters
 - **Historical Database:** IBM Subscriber Dataset (7,043 transaction rows, 21 initial dimensions)
@@ -30,7 +30,7 @@
 
 ---
 
-### ⚙️ SECTION 2: PROACTIVE MODELING & LOSS OPTIMIZATION (WEEK 2)
+###  SECTION 2: PROACTIVE MODELING & LOSS OPTIMIZATION (WEEK 2)
 
 #### Diagnostic Performance Benchmarks (Testing Split Metrics)
 
@@ -48,7 +48,7 @@
 
 ---
 
-## 🔮 SECTION 3: RE-SAMPLING LOOPS & BEHAVIORAL COHORTS (WEEK 3)
+##  SECTION 3: RE-SAMPLING LOOPS & BEHAVIORAL COHORTS (WEEK 3)
 
 #### Customer Segmentation Profiles (\(k=4\) K-Means Grouping)
 - **Cohort 0 (The Crisis Group):** Very new accounts (~18.4 months) on high-tier monthly pricing plans (~\$80.41). This group suffers from a catastrophic **43.0% churn velocity**, making them our highest priority for retention outreach.
@@ -65,6 +65,6 @@
 
 ---
 
-### 🛡️ SECTION 4: WEB DASHBOARD IMPLEMENTATION (WEEK 4)
-- **Live Hosted Link:** [PASTE YOUR LIVE STREAMLIT APP LINK HERE]
+###  SECTION 4: WEB DASHBOARD IMPLEMENTATION (WEEK 4)
+- **Live Hosted Link:** https://applied-ai-project1-churn-w5sjgp3ytxfe8wda9hwskz.streamlit.app/
 - Re-engineered the serialized pipeline binaries into a clean, responsive web interface via Streamlit. The system includes an automated **What-If Optimization Matrix** for individual profiles and a batch upload portal for bulk spreadsheet processing.
